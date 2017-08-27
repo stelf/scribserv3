@@ -27,8 +27,9 @@ class ControlScribusProto(WebSocketServerProtocol):
 
 log.startLogging(sys.stdout)
 
-FACT = WebSocketServerFactory()
+FACT = WebSocketServerFactory(u"ws://127.0.0.1:9000")
 FACT.protocol = ControlScribusProto
 
+reactor.debug = True
 reactor.listenTCP(9000, FACT)
 reactor.run()
