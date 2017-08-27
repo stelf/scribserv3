@@ -2,9 +2,11 @@
 
 CONNECTION_TIMEOUT = 15
 INACTIVE_TIMEOUT = 120
-DEFAULT_PORT = 22021
+DEFAULT_PORT = 22022
+LOGFILE = 'scribserv.log'
 
 try:
+    import logging
     import re
     import SocketServer
     import urllib
@@ -23,6 +25,15 @@ except:
 
 # ----------------------------------------------------------------------------
 
+logger = logging.getLogger('automator')
+hdlr = logging.FileHandler(LOGFILE)
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+hdlr.setFormatter(formatter)
+logger.addHandler(hdlr) 
+logger.setLevel(logging.INFO)
+
+# ----------------------------------------------------------------------------
+
 def exportPDF(opath='VR_EXPORT.pdf'):
     pdf = PDFfile()
     pdf.compress = 0
@@ -36,42 +47,53 @@ class Automator3(SocketServer.StreamRequestHandler):
         self.wfile.write(line + "\r\n")
 
     def handle(self):
-        self.sendLine('INTEGRATE v0.4')
-        
-        self.saved = {}
-        
+        logger.info('! handle request. initiate dialogue.')
+        logger.info('INTEGRATE v0.4')
+        self.saved = dict()
+
         while 1:
             data = self.rfile.readline().strip()
             if not data:
-                server.shutdown
+                self.shutdown()
                 return
 
             self.lineReceived(data)
 
-    def __init__(self, socket, client, tcpserv):
-        self.socket = socket
-        socket.settimeout(INACTIVE_TIMEOUT)
+    # def __init__(self, socket, client, tcpserv):
+    #     self.socket = socket
+    #     socket.settimeout(INACTIVE_TIMEOUT)
         
     #     # self.accb = reactor.callLater(INACTIVE_TIMEOUT, 
     #     #     functools.partial(
     #     #         Automator3.autoclose, 
     #     #         self))
 
-    def autoclose(self):
-        print '! close connection due to innactivity.'
-        # self.transport.loseConnection()
+    def shutdown(self):
+        """Close connection and app. 
+        
+        Typically in case of inactivity.
+
+        """
+
+        logger.warn('! shutdown system.')
+
         try:
             import PyQt4.QtGui as gui
 
+            logger.warn('! shutdown server')
+            self.connection.close()
+
+            logger.warn('! shutdown app')
             app = gui.QApplication.instance()
-            server.shutdown
             app.exit(0)
         except:
-            print r'running without Scribus. just close all'
-            server.shutdown
-            exit
- 
+            logger.warn(r'running without Scribus. just close all')
+            self.connection.close()
+
     def backup(self):
+        if not 'scribus' in globals():
+            return
+
         page = 1
         pagenum = scribus.pageCount()
         print '! backup template values from %d pages' % pagenum
@@ -86,9 +108,12 @@ class Automator3(SocketServer.StreamRequestHandler):
             page += 1
 
     def restore(self):
+        if not 'scribus' in globals():
+            return
+
         page = 1
         pagenum = scribus.pageCount()
-        print '! restore values into %d pages' % pagenum
+        logger.info('! restore values into %d pages' % pagenum)
 
         while page <= pagenum:
             scribus.gotoPage(page)
@@ -101,38 +126,38 @@ class Automator3(SocketServer.StreamRequestHandler):
 
     @staticmethod
     def CONVERT(arg):
-        print '..decode params.'
+        logger.info('..decode params.')
         marg = re.search(r'(.*?):(.*)', arg)
         if marg:
             [opath, xlatenc] = [marg.group(1), marg.group(2)]
         else:
-            print 'ERR_BAD_ARG: %s' % arg
+            logger.error('ERR_BAD_ARG: %s' % arg)
             return 'ERR_BAD_ARG: %s' % arg
 
-        print '..opath: %s' % opath
+        logger.info('..opath: %s' % opath)
         jsxlat = urllib.unquote(urllib.unquote(xlatenc))
-        print '..json: %s' % jsxlat
+        logger.info('..json: %s' % jsxlat)
 
         try:
             xlat = json.loads(jsxlat)
-            print '..xlat: %s' % xlat
+            logger.info('..xlat: %s' % xlat)
         except:
-            print '..error decoding json: %s' % sys.exc_info()[0]
+            logger.error('..error decoding json: %s' % sys.exc_info()[1].message)
 
         # -----------------------------------------------------------
 
-        print r'! process template'
+        logger.info(r'! process template')
         page = 1
         pagenum = scribus.pageCount()
         while page <= pagenum:
-            print r'.process page ' + str(page)
+            logger.info(r'.process page ' + str(page))
             scribus.gotoPage(page)
             pitems = scribus.getPageItems()
             for item in pitems:
-                print r'..process item ' + str(item)
+                logger.info(r'..process item ' + str(item))
                 if item[1] == 4:
                     buf = scribus.getAllText(item[0])
-                    print r'...cur: ' + str(buf)
+                    logger.info(r'...cur: ' + str(buf))
 
                     mbuf = re.search(r'[{]+(\w+)[}]+', buf)
                     v = mbuf.group(1)
@@ -142,15 +167,15 @@ class Automator3(SocketServer.StreamRequestHandler):
                         nstr = buf
 
                     scribus.setText(nstr, item[0])
-                    print '...new: ' + str(nstr)
+                    logger.info('...new: ' + str(nstr))
 
             page += 1
 
         # -----------------------------------------------------------
 
-        print '! export...'
+        logger.info('! export...')
         exportPDF(opath)
-        print '! done :D'
+        logger.info('! done :D')
 
         # scribus.closeDoc()
         return 'DONE'
@@ -158,17 +183,22 @@ class Automator3(SocketServer.StreamRequestHandler):
     @staticmethod
     def EXPORT(opath):
         exportPDF(opath)
-        print 'export current to PDF'
+        logger.info('export current to PDF')
 
     @staticmethod
-    def EXIT(aobj):
-        print '! closing remote connection'
-        aobj.transport.loseConnection()
+    def EXIT(self):
+        logger.warn('! closing remote connection and shutdown server')
+        self.shutdown()
 
     # def setup(self):
     #     print '! incoming connection'
 
     def lineReceived(self, line):
+        """Handle a line recieved from network.
+
+        Dispatch to corresponding handler, as 
+        described in self.operations.
+        """
         if line == '' or ':' not in line:
             self.sendLine(self.answers[None]['msg'])
             return
@@ -180,7 +210,7 @@ class Automator3(SocketServer.StreamRequestHandler):
             self.sendLine('ERR_BAD_CMD')
             return
 
-        print '.cmd [%(code)s] && arg [%(arg)s]' % {'code': code, 'arg': arg}
+        logger.info('.cmd [%(code)s] && arg [%(arg)s]' % {'code': code, 'arg': arg})
 
         if (arg == '' or arg == None):
             arg = self
@@ -190,12 +220,12 @@ class Automator3(SocketServer.StreamRequestHandler):
                 if hasattr(self, 'accb'): self.accb.reset(INACTIVE_TIMEOUT)
                 self.backup()
                 try:                    
-                    print '.commence command [%s]' % code
+                    logger.info('.commence command [%s]' % code)
                     res = self.answers[code]['fun'](arg)
                     if res:
                         self.sendLine(res)
                 except:
-                    print '.things went wrong: %s ' % sys.exc_info()[0]
+                    logger.error('.things went wrong: %s ' % sys.exc_info()[1].message)
                     self.sendLine('INTERNAL ERROR')
                 self.restore()
             else:
@@ -230,16 +260,10 @@ if len(argv) > 1:
 else:
     PORT = DEFAULT_PORT
 
-print '! starting automation on port %d, timeout in %ds' % PORT, CONNECTION_TIMEOUT
-
+logger.info('! starting automation on port %d, timeout in %d secs' % (PORT, CONNECTION_TIMEOUT))
 server = SocketServer.TCPServer(('localhost', PORT), Automator3)
-
-try:
-    server.timeout = CONNECTION_TIMEOUT
-    server.handle_request()
-except KeyboardInterrupt:
-    print "Got keyboard interrupt, shutting down"
-    server.shutdown()
+server.timeout = CONNECTION_TIMEOUT
+server.handle_request()
 
 # import urllib
 
