@@ -87,7 +87,7 @@ class Automator3(SocketServer.StreamRequestHandler):
             app = gui.QApplication.instance()
             app.exit(0)
         except:
-            logger.warn(r'running without Scribus. just close all')
+            logger.warn(r'could not import PyQt4.QtGui. just close all')
             self.connection.close()
 
     def backup(self):
@@ -124,6 +124,9 @@ class Automator3(SocketServer.StreamRequestHandler):
                        scribus.setText(self.saved[item[0]], item[0])
             page += 1
 
+        logger.info('! done restore')
+
+
     @staticmethod
     def CONVERT(arg):
         logger.info('..decode params.')
@@ -154,10 +157,10 @@ class Automator3(SocketServer.StreamRequestHandler):
             scribus.gotoPage(page)
             pitems = scribus.getPageItems()
             for item in pitems:
-                logger.info(r'..process item ' + str(item))
                 if item[1] == 4:
+                    logger.info(r'..process text ' + str(item))
                     buf = scribus.getAllText(item[0])
-                    logger.info(r'...cur: ' + str(buf))
+                    logger.info(r'...cur text: ' + str(buf))
 
                     mbuf = re.search(r'[{]+(\w+)[}]+', buf)
                     v = mbuf.group(1)
@@ -167,7 +170,7 @@ class Automator3(SocketServer.StreamRequestHandler):
                         nstr = buf
 
                     scribus.setText(nstr, item[0])
-                    logger.info('...new: ' + str(nstr))
+                    logger.info('...new text: ' + str(nstr))
 
             page += 1
 
@@ -232,6 +235,8 @@ class Automator3(SocketServer.StreamRequestHandler):
                 self.sendLine(self.answers[code]['msg'])
         else:
             self.sendLine(self.answers[None]['msg'])
+
+        logger.info('! done processing ')
 
 Automator3.answers = {
     'CONVERT': {
