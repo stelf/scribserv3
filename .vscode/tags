@@ -1,0 +1,48 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+Automation	../scribserv2.py	/^class Automation(LineReceiver):$/;"	kind:class	line:28
+AutomationFactory	../scribserv2.py	/^class AutomationFactory(Factory):$/;"	kind:class	line:145
+CONVERT	../scribserv2.py	/^    def CONVERT(arg):$/;"	kind:member	line:34
+CertInstallCommand	../get-pip.py	/^    class CertInstallCommand(InstallCommand):$/;"	kind:class	line:87
+ControlScribusProto	../scribserv.py	/^class ControlScribusProto(WebSocketServerProtocol):$/;"	kind:class	line:8
+EXIT	../scribserv2.py	/^    def EXIT(self):$/;"	kind:member	line:89
+EXPORT	../scribserv2.py	/^    def EXPORT(opath):$/;"	kind:member	line:85
+FACT	../scribserv.py	/^FACT = WebSocketServerFactory(u"ws:\/\/127.0.0.1:9000")$/;"	kind:variable	line:30
+PORT	../scribserv2.py	/^    PORT = 22023$/;"	kind:variable	line:154
+PORT	../scribserv2.py	/^    PORT = int(argv[2])$/;"	kind:variable	line:152
+REPLACE	../scribserv2.py	/^    def REPLACE(arg):$/;"	kind:member	line:81
+__init__	../scribserv2.py	/^    def __init__(self, factory):$/;"	kind:member	line:29
+_b85alphabet	../get-pip.py	/^    _b85alphabet = (b"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"$/;"	kind:variable	line:43
+answers	../scribserv2.py	/^    answers = {$/;"	kind:variable	line:93
+args	../get-pip.py	/^        args = sys.argv[1:]$/;"	kind:variable	line:108
+b85decode	../get-pip.py	/^    def b85decode(b):$/;"	kind:function	line:46
+bootstrap	../get-pip.py	/^def bootstrap(tmpdir=None):$/;"	kind:function	line:80
+buildProtocol	../scribserv2.py	/^    def buildProtocol(self, addr):$/;"	kind:member	line:146
+cert_path	../get-pip.py	/^        cert_path = os.path.join(tmpdir, "cacert.pem")$/;"	kind:variable	line:166
+connectionMade	../scribserv2.py	/^    def connectionMade(self):$/;"	kind:member	line:114
+endpoint	../scribserv2.py	/^endpoint = TCP4ServerEndpoint(reactor, PORT)$/;"	kind:variable	line:158
+export2pdf.py	../export2pdf.py	1;"	kind:file	line:1
+exportPDF	../scribserv2.py	/^def exportPDF(opath='VR_EXPORT.pdf'):$/;"	kind:function	line:20
+get-pip.py	../get-pip.py	1;"	kind:file	line:1
+implicit_setuptools	../get-pip.py	/^        implicit_setuptools = False$/;"	kind:variable	line:106
+implicit_wheel	../get-pip.py	/^        implicit_wheel = False$/;"	kind:variable	line:113
+iterbytes	../get-pip.py	/^    def iterbytes(buf):$/;"	kind:function	line:37
+iterbytes	../get-pip.py	/^    iterbytes = iter$/;"	kind:variable	line:35
+lineReceived	../scribserv2.py	/^    def lineReceived(self, line):$/;"	kind:member	line:117
+loop_forever	../try.py	/^def loop_forever():$/;"	kind:function	line:20
+main	../export2pdf.py	/^def main(argv):$/;"	kind:function	line:42
+main	../get-pip.py	/^def main():$/;"	kind:function	line:179
+objectExplorer.py	../objectExplorer.py	1;"	kind:file	line:1
+onClose	../scribserv.py	/^    def onClose(self, wasClean, code, reason):$/;"	kind:member	line:24
+onConnect	../scribserv.py	/^    def onConnect(self, request):$/;"	kind:member	line:9
+onMessage	../scribserv.py	/^    def onMessage(self, payload, isBinary):$/;"	kind:member	line:15
+onOpen	../scribserv.py	/^    def onOpen(self):$/;"	kind:member	line:12
+parse_args	../get-pip.py	/^        def parse_args(self, args):$/;"	kind:member	line:88
+scribserv.py	../scribserv.py	1;"	kind:file	line:1
+scribserv2.py	../scribserv2.py	1;"	kind:file	line:1
+tdata	../scribserv2.py	/^tdata = {$/;"	kind:variable	line:14
+try.py	../try.py	1;"	kind:file	line:1
