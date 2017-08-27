@@ -1,23 +1,19 @@
 #!/usr/bin/python2
 
+CONNECTION_TIMEOUT = 15
 INACTIVE_TIMEOUT = 120
-DEFAULT_PORT = 22022
-
-from twisted.internet.protocol import Factory
-from twisted.protocols.basic import LineReceiver
-from twisted.internet.endpoints import TCP4ServerEndpoint
-from twisted.internet import reactor
-from twisted.python.failure import Failure
+DEFAULT_PORT = 22021
 
 try:
     import re
+    import SocketServer
     import urllib
     import sys
     import json
     from sys import argv
     import functools
 except:
-    print '! missing some crucial system module !'
+    print '! missing some crucial system modules !'
 
 try:
     import scribus
@@ -27,7 +23,6 @@ except:
 
 # ----------------------------------------------------------------------------
 
-
 def exportPDF(opath='VR_EXPORT.pdf'):
     pdf = PDFfile()
     pdf.compress = 0
@@ -36,26 +31,45 @@ def exportPDF(opath='VR_EXPORT.pdf'):
     pdf.embedPDF = True
     pdf.save()
 
-class Automation(LineReceiver):
-    def __init__(self, factory):
-        self.factory = factory
+class Automator3(SocketServer.StreamRequestHandler):
+    def sendLine(self, line):
+        self.wfile.write(line + "\r\n")
+
+    def handle(self):
+        self.sendLine('INTEGRATE v0.4')
+        
         self.saved = {}
-        self.curdoc = None
-        self.accb = reactor.callLater(INACTIVE_TIMEOUT, 
-            functools.partial(
-                Automation.autoclose, 
-                self))
+        
+        while 1:
+            data = self.rfile.readline().strip()
+            if not data:
+                server.shutdown
+                return
+
+            self.lineReceived(data)
+
+    def __init__(self, socket, client, tcpserv):
+        self.socket = socket
+        socket.settimeout(INACTIVE_TIMEOUT)
+        
+    #     # self.accb = reactor.callLater(INACTIVE_TIMEOUT, 
+    #     #     functools.partial(
+    #     #         Automator3.autoclose, 
+    #     #         self))
 
     def autoclose(self):
         print '! close connection due to innactivity.'
-        self.transport.loseConnection()
+        # self.transport.loseConnection()
         try:
             import PyQt4.QtGui as gui
 
             app = gui.QApplication.instance()
+            server.shutdown
             app.exit(0)
         except:
-            print r'running without Scribus. just close connection'
+            print r'running without Scribus. just close all'
+            server.shutdown
+            exit
  
     def backup(self):
         page = 1
@@ -75,7 +89,7 @@ class Automation(LineReceiver):
         page = 1
         pagenum = scribus.pageCount()
         print '! restore values into %d pages' % pagenum
-        
+
         while page <= pagenum:
             scribus.gotoPage(page)
             pitems = scribus.getPageItems()
@@ -87,7 +101,7 @@ class Automation(LineReceiver):
 
     @staticmethod
     def CONVERT(arg):
-        print '..decode params... '
+        print '..decode params.'
         marg = re.search(r'(.*?):(.*)', arg)
         if marg:
             [opath, xlatenc] = [marg.group(1), marg.group(2)]
@@ -107,7 +121,7 @@ class Automation(LineReceiver):
 
         # -----------------------------------------------------------
 
-        print r'! process template...'
+        print r'! process template'
         page = 1
         pagenum = scribus.pageCount()
         while page <= pagenum:
@@ -151,9 +165,8 @@ class Automation(LineReceiver):
         print '! closing remote connection'
         aobj.transport.loseConnection()
 
-    def connectionMade(self):
-        self.transport.write('Good Automator for Scribus (GAS) v0.3\r\n')
-        self.transport.write('HELLO, VISIONR! :D\r\n')
+    # def setup(self):
+    #     print '! incoming connection'
 
     def lineReceived(self, line):
         if line == '' or ':' not in line:
@@ -174,7 +187,7 @@ class Automation(LineReceiver):
 
         if self.answers.has_key(code):
             if self.answers[code]['fun']:
-                self.accb.reset(INACTIVE_TIMEOUT)
+                if hasattr(self, 'accb'): self.accb.reset(INACTIVE_TIMEOUT)
                 self.backup()
                 try:                    
                     print '.commence command [%s]' % code
@@ -190,23 +203,17 @@ class Automation(LineReceiver):
         else:
             self.sendLine(self.answers[None]['msg'])
 
-
-class AutomationFactory(Factory):
-    def buildProtocol(self, addr):
-        return Automation(self)
-
-
-Automation.answers = {
+Automator3.answers = {
     'CONVERT': {
-        'fun': Automation.CONVERT,
+        'fun': Automator3.CONVERT,
         'msg': 'DONE'
     },
     'EXPORT': {
-        'fun': Automation.EXPORT,
+        'fun': Automator3.EXPORT,
         'msg': 'DONE'
     },
     'EXIT': {
-        'fun': Automation.EXIT,
+        'fun': Automator3.EXIT,
         'msg': None
     },
     None: {
@@ -223,13 +230,16 @@ if len(argv) > 1:
 else:
     PORT = DEFAULT_PORT
 
-print '! starting automation on port %d' % PORT
+print '! starting automation on port %d, timeout in %ds' % PORT, CONNECTION_TIMEOUT
 
-endpoint = TCP4ServerEndpoint(reactor, PORT)
-endpoint.listen(AutomationFactory())
+server = SocketServer.TCPServer(('localhost', PORT), Automator3)
 
-reactor.run()
-
+try:
+    server.timeout = CONNECTION_TIMEOUT
+    server.handle_request()
+except KeyboardInterrupt:
+    print "Got keyboard interrupt, shutting down"
+    server.shutdown()
 
 # import urllib
 
@@ -239,8 +249,5 @@ reactor.run()
 # print 'DBG: ' + argenc
 # res = Automation.answers[code]['fun']('Result.PDF:' + str(argenc))
 
-#
-#
 # CONVERT:DBG.pdf:%7B%22CAPT%22%3A%20%22ichi%20da%20kuilla%22%2C%22DESC1%22%3A%20%22sex%20more%20for%20everyone%22%2C%22DESC2%22%3A%20%22houwyacc%20mooyacc%20greive%20est%20cos%28mes%29%22%7D
 # CONVERT:DBG22.pdf:%7B%22CAPT%22%3A%20%22ANOTHER%22%2C%22DESC1%22%3A%20%22ANNN2233%22%2C%22DESC2%22%3A%20%22AAEEEYYAAE%22%7D
-
