@@ -48,7 +48,7 @@ class Automator3(SocketServer.StreamRequestHandler):
 
     def handle(self):
         logger.info('! handle request. initiate dialogue.')
-        logger.info('INTEGRATE v0.4')
+        logger.info('INTEGRATE v0.5')
         self.saved = dict()
 
         while 1:
