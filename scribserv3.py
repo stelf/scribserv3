@@ -90,43 +90,6 @@ class Automator3(SocketServer.StreamRequestHandler):
             logger.warn(r'could not import PyQt4.QtGui. just close all')
             self.connection.close()
 
-    def backup(self):
-        if not 'scribus' in globals():
-            return
-
-        page = 1
-        pagenum = scribus.pageCount()
-        print '! backup template values from %d pages' % pagenum
-        
-        while page <= pagenum:
-            scribus.gotoPage(page)
-            pitems = scribus.getPageItems()
-            for item in pitems:
-                if item[1] == 4:
-                    buf = scribus.getAllText(item[0])
-                    self.saved[item[0]] = buf
-            page += 1
-
-    def restore(self):
-        if not 'scribus' in globals():
-            return
-
-        page = 1
-        pagenum = scribus.pageCount()
-        logger.info('! restore values into %d pages' % pagenum)
-
-        while page <= pagenum:
-            scribus.gotoPage(page)
-            pitems = scribus.getPageItems()
-            for item in pitems:
-                if item[1] == 4:
-                    if self.saved.get(item[0]) != None:
-                       scribus.setText(self.saved[item[0]], item[0])
-            page += 1
-
-        logger.info('! done restore')
-
-
     @staticmethod
     def CONVERT(arg):
         logger.info('..decode params.')
@@ -161,11 +124,19 @@ class Automator3(SocketServer.StreamRequestHandler):
                     logger.info(r'..process text ' + str(item))
                     buf = scribus.getAllText(item[0])
                     logger.info(r'...cur text: ' + str(buf))
-
+                    # try to figure placeholder
                     mbuf = re.search(r'[{]+(\w+)[}]+', buf)
-                    v = mbuf.group(1)
-                    if v and xlat[v]:
-                        nstr = xlat[v]
+                    if mbuf:
+                        # placeholder text
+                        phc = mbuf.group(1)
+                        Automator3.codes[item[0]] = phc
+                    else:       
+                        # have we been here before?
+                        if (Automator3.codes[item[0]]):
+                            phc = Automator3.codes[item[0]]
+                    # ok. do we have a xlat for this?
+                    if phc and xlat[phc]:
+                        nstr = xlat[phc]
                     else:
                         nstr = buf
 
@@ -221,7 +192,7 @@ class Automator3(SocketServer.StreamRequestHandler):
         if self.answers.has_key(code):
             if self.answers[code]['fun']:
                 if hasattr(self, 'accb'): self.accb.reset(INACTIVE_TIMEOUT)
-                self.backup()
+                # self.backup()
                 try:                    
                     logger.info('.commence command [%s]' % code)
                     res = self.answers[code]['fun'](arg)
@@ -230,13 +201,15 @@ class Automator3(SocketServer.StreamRequestHandler):
                 except:
                     logger.error('.things went wrong: %s ' % sys.exc_info()[1].message)
                     self.sendLine('INTERNAL ERROR')
-                self.restore()
+                # self.restore()
             else:
                 self.sendLine(self.answers[code]['msg'])
         else:
             self.sendLine(self.answers[None]['msg'])
 
         logger.info('! done processing ')
+
+Automator3.codes = dict()
 
 Automator3.answers = {
     'CONVERT': {
