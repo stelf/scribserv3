@@ -1,0 +1,18 @@
+[MASTER]
+
+# Profiled execution.
+profile=no
+
+# Add files or directories to the blacklist. They should be base names, not
+# paths.
+
+ignore=CVS .git .hg 
+persistent=yes
+
+[MESSAGES CONTROL]
+
+disable=W0142,W0403,R0201,W0212,W0613,W0232,R0903,W0614,C0111,C0301,R0913,C0103,F0401,W0402,R0914,I0011
+
+[TYPECHECK]
+
+ignored-classes=SQLObject,twisted.internet.reactor,ephem
