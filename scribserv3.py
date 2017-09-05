@@ -1,7 +1,7 @@
 #!/usr/bin/python2
 
 # ****************************************************************************
-#  This program is free software; you can redistribute it and/or modify 
+#  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
@@ -14,13 +14,13 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-# 
+#
 # ****************************************************************************
 
 
 """
 
-© 2017 by Gheorghi Penkov
+(C) 2017 by Gheorghi Penkov
 
 see the README.md for usage
 
@@ -29,7 +29,8 @@ see the README.md for usage
 # VERSION = "v0.5 - w/working templating"
 # VERSION = "v0.6 - w/colors & unit test"
 # VERSION = "v0.7 - w/local+remote debug"
-VERSION = "v07.2 - w/local+remote debug & even smarter"
+# VERSION = "v7.2 - w/local+remote debug & even smarter"
+VERSION = "v7.3 - replace ftw"
 
 # ----------------------------------------------------------------------------
 
@@ -112,6 +113,19 @@ class scribusdummy(object):
 try:
     import scribus
     from scribus import PDFfile, haveDoc
+
+    def replaceText(text, code):
+            l = scribus.getTextLength(code)
+            scribus.selectText(0, l-1, code)
+            scribus.deleteText(code)
+            scribus.insertText(text, 0, code)
+
+            l = scribus.getTextLength(code)
+            scribus.selectText(l-1, 1, code)
+            scribus.deleteText(code)
+
+    scribus.replaceText = replaceText
+
 except ImportError:
     print '! yo runnin standalone, baba!'
     scribus = scribusdummy
@@ -156,7 +170,7 @@ def exportPDF(opath='VR_EXPORT.pdf'):
         pdf.outdst = 0          # out destination - printer
         pdf.file = opath
         pdf.profilei = True     # embed color profile
-        pdf.embedPDF = False    # PDF in PDF
+        pdf.embedPDF = True     # PDF in PDF
         pdf.useLayers = True    # export the layers (if any)
         pdf.fontEmbedding = 1   # text to curves
 
@@ -232,7 +246,7 @@ def processTemplate(xlat):
                 nstr = buf
 
             try:
-                scribus.setText(nstr, item[0])
+                scribus.replaceText(nstr, item[0])
                 logger.info('...new text: ' + str(nstr))
             except scribus.ScribusException:
                 logger.error('.. scribus setText failed')
@@ -253,7 +267,7 @@ class Automator3(SocketServer.StreamRequestHandler):
         logger.info('! handle request. initiate dialogue.')
         logger.info('! adapter %s' % VERSION)
         self.saved = dict()
-        
+
         while 1:
             data = self.rfile.readline().strip()
             if not data:
@@ -281,8 +295,8 @@ class Automator3(SocketServer.StreamRequestHandler):
         logger.warn('! shutdown system.')
 
         try:
+            # as per http://forums.scribus.net/index.php?topic=1448.0
             import PyQt4.QtGui as gui
-
             app = gui.QApplication.instance()
 
             logger.warn('! shutdown server')
@@ -415,7 +429,9 @@ Automator3.answers = {
 
 # --------------------------------------------------------------------
 
-scribus.setRedraw(True)
+# maybe leave this true at some point when
+# all development is done
+# scribus.setRedraw(False)
 
 if len(argv) > 1:
     PORT = int(argv[1])
@@ -447,4 +463,4 @@ else:
 # CONVERT:DBG.pdf:%7B%22CAPT%22%3A%20%22ichi%20da%20kuilla%22%2C%22DESC1%22%3A%20%22sex%20more%20for%20everyone%22%2C%22DESC2%22%3A%20%22houwyacc%20mooyacc%20greive%20est%20cos%28mes%29%22%7D
 # CONVERT:DBG22.pdf:%7B%22CAPT%22%3A%20%22ANOTHER%22%2C%22DESC1%22%3A%20%22ANNN2233%22%2C%22DESC2%22%3A%20%22AAEEEYYAAE%22%7D
 # CONVERT:DBG-color.pdf:%7B%22CAPT%22%3A%20%22ANOTHER%22%2C%22DESC1%22%3A%20%22ANNN2233%22%2C%22DESC2%22%3A%20%22AAEEEYYAAE%22%2C%20%22COLOR1%22%20%3A%20%221%2C2%2C3%2C4%22%2C%20%22BABA%22%3A%20%22cmyk%2810%2C%2020%2C%2030%2C%2040%29%22%7D
-# CONVERT:DBG-color.pdf:%7B%22NAME%22%3A%20%22THE%20FUCKMAN%22%2C%22BABA%22%3A%20%22cmyk%28100%2C%2020%2C%2050%2C%2010%29%22%7D
+# CONVERT:temp/result.pdf:%7B%22NAME%22%3A%20%22THE%20FUCKMAN%22%2C%22BABA%22%3A%20%22cmyk%28100%2C%2020%2C%2050%2C%2010%29%22%7D
