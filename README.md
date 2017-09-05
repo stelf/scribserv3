@@ -41,7 +41,19 @@ CONVERT:DBG-color.pdf:%7B%22NAME%22%3A%20%22THE%20FUCKMAN%22%2C%22BABA%22%3A%20%
 
   close the current, and open new file
 
-## Trivia
+## Generating Params
+
+you can easily generate param strings with the following snippet
+
+```python
+# import urllib
+
+code = 'CONVERT'
+arg = '{"NAME": "THE DUCKMAN", "COLOR": "cmyk(100, 20, 50, 10)"}'
+print urllib.quote(arg)
+```
+
+## reg. Scribus API
 
 This uses the old Scribus API. Was tested with scribus 1.5.3 on Windows 10, Mint 18, and OS/X 10.6
 
