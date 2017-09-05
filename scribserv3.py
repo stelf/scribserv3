@@ -1,12 +1,24 @@
 #!/usr/bin/python2
 
+# VERSION = "v0.5 - w/working templating"
+# VERSION = "v0.6 - w/colors & unit test"
+# VERSION = "v0.7 - w/local+remote debug"
+VERSION = "v07.2 - w/local+remote debug & even smarter"
+
 # uncomment this in order to debug remotely
 # with winpdb (http://www.winpdb.org/)
-
-# import rpdb2; 
+# import rpdb2;
 # rpdb2.start_embedded_debugger('dqdomraz')
 
-CONNECTION_TIMEOUT = 15
+# uncomment this in order to debug remotely
+# as descibed in https://donjayamanne.github.io/pythonVSCodeDocs/docs/debugging_remote-debugging/
+# although, not working at the time of writing fo this code
+
+# import ptvsd
+# ptvsd.enable_attach("dqdomraz", address=('0.0.0.0', 3040))
+# ptvsd.wait_for_attach()
+
+CONNECTION_TIMEOUT = 60
 INACTIVE_TIMEOUT = 120
 DEFAULT_PORT = 22022
 LOGFILE = 'scribserv.log'
@@ -101,10 +113,28 @@ class TCPServerV4(SocketServer.TCPServer):
 def exportPDF(opath='VR_EXPORT.pdf'):
     if 'PDFfile' in globals():
         pdf = PDFfile()
+
+        # options are described at
+        # https://www.scribus.net/svn/Scribus/trunk/Scribus/doc/en/scripterapi-PDFfile.html
+
         pdf.compress = 0
+
+        pdf.version = 15        # 15 = PDF 1.5 (Acrobat 6)
         pdf.bleedr = 2
+
+        pdf.allowPrinting = True
+        pdf.allowCopy = True
+
+        pdf.outdst = 0          # out destination - printer
         pdf.file = opath
-        pdf.embedPDF = True
+        pdf.profilei = True     # embed color profile
+        pdf.embedPDF = False     # PDF in PDF
+        pdf.useLayers = True    # export the layers (if any)
+        pdf.fontEmbedding = 1   # text to curves
+
+        pdf.resolution = 300    # good enough for most prints
+        pdf.quality = 1         # high image quality
+
         pdf.save()
     else:
         logger.warn('no PDF printing in standalone run')
@@ -114,17 +144,18 @@ def exportPDF(opath='VR_EXPORT.pdf'):
 def processColors(xlat):
     if xlat is None:
         return
-    p = re.compile('[{}]')
+    rclean = re.compile('[{}]')
+    rcmyk = re.compile(r'[(]*([\d\s,]+)[)]*')
 
     logger.info(r'! process colors')
     try:
-        colcodes = [p.sub('', n)
+        colcodes = [rclean.sub('', n)
                     for n in scribus.getColorNames()
                     if '{' in n and '}' in n]
 
         logger.info("! colcodes %s", str(colcodes))
 
-        cn = {name: map(int, xlat[name].split(','))
+        cn = {name: map(int, rcmyk.search(xlat[name]).group(1).split(', '))
               for name in colcodes
               if name in xlat and ',' in xlat[name]}
 
@@ -132,7 +163,7 @@ def processColors(xlat):
 
         for name, val in cn.iteritems():
             scribus.changeColor(name, *val)
-            logger.info('..replaced color %s => cmyk(%s)', name, xlat[name])
+            logger.info('..replaced color %s => (%s)', name, xlat[name])
 
     except scribus.ScribusException:
         logger.error('..scribus failed: %s', sys.exc_info()[1].message)
@@ -151,15 +182,13 @@ def processTemplate(xlat):
         pitems = scribus.getPageItems()
 
         for item in [p for p in pitems if p[1] == 4]:
-            logger.info(r'..process text ' + str(item))
+            logger.info(r'..process item: [%s] ', item)
             buf = scribus.getAllText(item[0])
-            logger.info(r'...cur text: ' + str(buf))
-
+            logger.info(r'...cur text: [%s]', buf)
             phc = None
-
             # try to figure placeholder
             mbuf = re.search(r'[{]+(\w+)[}]+', buf)
-            if mbuf:
+            if mbuf is not None:
                 # placeholder text
                 phc = mbuf.group(1)
                 Automator3.codes[item[0]] = phc
@@ -169,13 +198,16 @@ def processTemplate(xlat):
                     phc = Automator3.codes[item[0]]
 
             # ok. do we have a xlat for this?
-            if phc is not None and xlat[phc]:
+            if phc is not None and phc in xlat:
                 nstr = xlat[phc]
             else:
                 nstr = buf
 
-            scribus.setText(nstr, item[0])
-            logger.info('...new text: ' + str(nstr))
+            try:
+                scribus.setText(nstr, item[0])
+                logger.info('...new text: ' + str(nstr))
+            except scribus.ScribusException:
+                logger.error('.. scribus setText failed')
 
         page += 1
 
@@ -191,9 +223,9 @@ class Automator3(SocketServer.StreamRequestHandler):
 
     def handle(self):
         logger.info('! handle request. initiate dialogue.')
-        logger.info('INTEGRATE v0.7 - w/local+remote debug')
+        logger.info('! adapter %s' % VERSION)
         self.saved = dict()
-
+        
         while 1:
             data = self.rfile.readline().strip()
             if not data:
@@ -239,23 +271,24 @@ class Automator3(SocketServer.StreamRequestHandler):
 
     @staticmethod
     def CONVERT(arg):
-        logger.info('..decode params.')
+        logger.info('..decoding params...')
         marg = re.search(r'(.*?):(.*)', arg)
         if marg:
             [opath, xlatenc] = [marg.group(1), marg.group(2)]
         else:
-            logger.error('ERR_BAD_ARG: %s', arg)
+            logger.error('..bad argument: [%s]', arg)
             return 'ERR_BAD_ARG: %s' % arg
 
-        logger.info('..opath: %s', opath)
+        logger.info('..opath: [%s]', opath)
         jsxlat = urllib.unquote(urllib.unquote(xlatenc))
-        logger.info('..json: %s', jsxlat)
+        logger.info('..json: [%s]', jsxlat)
 
         try:
             xlat = json.loads(jsxlat)
             logger.info('..xlat: %s', xlat)
         except StandardError:
             logger.error('..error decoding json: %s', sys.exc_info()[1].message)
+            return 'ERR_BAD_JSON: %s' % jsxlat
 
         # --------------------------------------------------------------------
 
@@ -311,17 +344,17 @@ class Automator3(SocketServer.StreamRequestHandler):
         if self.answers.has_key(code):
             if self.answers[code]['fun']:
                 # if hasattr(self, 'accb'):
-                    # self.accb.reset(INACTIVE_TIMEOUT)
-                    # self.backup()
+                # self.accb.reset(INACTIVE_TIMEOUT)
                 try:
                     logger.info('.commence command [%s]', code)
                     res = self.answers[code]['fun'](arg)
                     if res:
                         self.sendLine(res)
+                except scribus.ScribusException:
+                    logger.error('.scribus failed: %s ', sys.exc_info()[1].message)
                 except StandardError:
-                    logger.error('.things went wrong: %s ', sys.exc_info()[1].message)
+                    logger.error('.things went wrong: %s ', sys.exc_info())
                     self.sendLine('INTERNAL ERROR')
-                # self.restore()
             else:
                 self.sendLine(self.answers[code]['msg'])
         else:
@@ -373,7 +406,8 @@ server.handle_request()
 # import urllib
 
 # code = 'CONVERT'
-# arg = '{"CAPT": "ANOTHER","DESC1": "ANNN2233","DESC2": "AAEEEYYAAE", "COLOR1" : "1,2,3,4"}'
+# # arg = '{"CAPT": "ANOTHER","DESC1": "ANNN2233","DESC2": "AAEEEYYAAE", "COLOR1" : "1,2,3,4", "BABA": "cmyk(100, 20, 50, 10)"}'
+# arg = '{"NAMEs": "THE FUCKMAN","BABA": "cmyk(100, 20, 50, 10)"}'
 # argenc = urllib.quote(arg)
 # print 'DBG: ' + argenc
 
@@ -382,5 +416,5 @@ server.handle_request()
 #
 # CONVERT:DBG.pdf:%7B%22CAPT%22%3A%20%22ichi%20da%20kuilla%22%2C%22DESC1%22%3A%20%22sex%20more%20for%20everyone%22%2C%22DESC2%22%3A%20%22houwyacc%20mooyacc%20greive%20est%20cos%28mes%29%22%7D
 # CONVERT:DBG22.pdf:%7B%22CAPT%22%3A%20%22ANOTHER%22%2C%22DESC1%22%3A%20%22ANNN2233%22%2C%22DESC2%22%3A%20%22AAEEEYYAAE%22%7D
-# CONVERT:DBG-color.pdf:%7B%22CAPT%22%3A%20%22ANOTHER%22%2C%22DESC1%22%3A%20%22ANNN2233%22%2C%22DESC2%22%3A%20%22AAEEEYYAAE%22%2C%20%22COLOR1%22%20%3A%20%221%2C2%2C3%2C4%22%7D
-#
+# CONVERT:DBG-color.pdf:%7B%22CAPT%22%3A%20%22ANOTHER%22%2C%22DESC1%22%3A%20%22ANNN2233%22%2C%22DESC2%22%3A%20%22AAEEEYYAAE%22%2C%20%22COLOR1%22%20%3A%20%221%2C2%2C3%2C4%22%2C%20%22BABA%22%3A%20%22cmyk%2810%2C%2020%2C%2030%2C%2040%29%22%7D
+# CONVERT:DBG-color.pdf:%7B%22NAME%22%3A%20%22THE%20FUCKMAN%22%2C%22BABA%22%3A%20%22cmyk%28100%2C%2020%2C%2050%2C%2010%29%22%7D
