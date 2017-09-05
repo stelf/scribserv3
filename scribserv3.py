@@ -128,7 +128,7 @@ def exportPDF(opath='VR_EXPORT.pdf'):
         pdf.outdst = 0          # out destination - printer
         pdf.file = opath
         pdf.profilei = True     # embed color profile
-        pdf.embedPDF = False     # PDF in PDF
+        pdf.embedPDF = False    # PDF in PDF
         pdf.useLayers = True    # export the layers (if any)
         pdf.fontEmbedding = 1   # text to curves
 
@@ -387,19 +387,21 @@ Automator3.answers = {
 
 # --------------------------------------------------------------------
 
-scribus.setRedraw(False)
+scribus.setRedraw(True)
 
 if len(argv) > 1:
     PORT = int(argv[1])
 else:
     PORT = DEFAULT_PORT
 
-print '! starting automation on port %d, timeout in %d secs' % (PORT, CONNECTION_TIMEOUT)
-print '! log is at %s ' % LOGFILE
-
-logger.info('! starting automation on port %d, timeout in %d secs', PORT, CONNECTION_TIMEOUT)
-server = TCPServerV4(('localhost', PORT), Automator3)
-server.handle_request()
+if 'PRINTONLY' in argv:
+    exportPDF('/tmp/test.pdf')
+else:
+    print '! starting automation on port %d, timeout in %d secs' % (PORT, CONNECTION_TIMEOUT)
+    print '! log is at %s ' % LOGFILE
+    logger.info('! starting automation on port %d, timeout in %d secs', PORT, CONNECTION_TIMEOUT)
+    server = TCPServerV4(('localhost', PORT), Automator3)
+    server.handle_request()
 
 # --------------------------------------------------------------------
 
@@ -413,7 +415,7 @@ server.handle_request()
 
 # res = Automation.answers[code]['fun']('Result.PDF:' + str(argenc))
 
-#
+# xvfb-run -n 2 scribus-ng  -py ./scribserv3.py 22025 -- template.sla
 # CONVERT:DBG.pdf:%7B%22CAPT%22%3A%20%22ichi%20da%20kuilla%22%2C%22DESC1%22%3A%20%22sex%20more%20for%20everyone%22%2C%22DESC2%22%3A%20%22houwyacc%20mooyacc%20greive%20est%20cos%28mes%29%22%7D
 # CONVERT:DBG22.pdf:%7B%22CAPT%22%3A%20%22ANOTHER%22%2C%22DESC1%22%3A%20%22ANNN2233%22%2C%22DESC2%22%3A%20%22AAEEEYYAAE%22%7D
 # CONVERT:DBG-color.pdf:%7B%22CAPT%22%3A%20%22ANOTHER%22%2C%22DESC1%22%3A%20%22ANNN2233%22%2C%22DESC2%22%3A%20%22AAEEEYYAAE%22%2C%20%22COLOR1%22%20%3A%20%221%2C2%2C3%2C4%22%2C%20%22BABA%22%3A%20%22cmyk%2810%2C%2020%2C%2030%2C%2040%29%22%7D

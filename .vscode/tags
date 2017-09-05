@@ -6,40 +6,42 @@
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
 Automation	../scribserv2.py	/^class Automation(LineReceiver):$/;"	kind:class	line:39
 AutomationFactory	../scribserv2.py	/^class AutomationFactory(Factory):$/;"	kind:class	line:194
-Automator3	../scribserv3.py	/^class Automator3(SocketServer.StreamRequestHandler):$/;"	kind:class	line:99
+Automator3	../scribserv3.py	/^class Automator3(SocketServer.StreamRequestHandler):$/;"	kind:class	line:216
 CONNECTION_TIMEOUT	../miniserv.py	/^CONNECTION_TIMEOUT = 15$/;"	kind:variable	line:3
-CONNECTION_TIMEOUT	../scribserv3.py	/^CONNECTION_TIMEOUT = 15$/;"	kind:variable	line:3
+CONNECTION_TIMEOUT	../scribserv3.py	/^CONNECTION_TIMEOUT = 60$/;"	kind:variable	line:21
 CONVERT	../scribserv2.py	/^    def CONVERT(arg):$/;"	kind:member	line:89
-CONVERT	../scribserv3.py	/^    def CONVERT(arg):$/;"	kind:member	line:156
+CONVERT	../scribserv3.py	/^    def CONVERT(arg):$/;"	kind:member	line:273
 CPPDocs	../scridoc.py	/^class CPPDocs:$/;"	kind:class	line:73
 CertInstallCommand	../get-pip.py	/^    class CertInstallCommand(InstallCommand):$/;"	kind:class	line:87
 ControlScribusProto	../scribserv.py	/^class ControlScribusProto(WebSocketServerProtocol):$/;"	kind:class	line:8
 DEFAULT_PORT	../scribserv2.py	/^DEFAULT_PORT = 22022$/;"	kind:variable	line:4
-DEFAULT_PORT	../scribserv3.py	/^DEFAULT_PORT = 22028$/;"	kind:variable	line:5
+DEFAULT_PORT	../scribserv3.py	/^DEFAULT_PORT = 22022$/;"	kind:variable	line:23
 EXIT	../scribserv2.py	/^    def EXIT(aobj):$/;"	kind:member	line:150
-EXIT	../scribserv3.py	/^    def EXIT(obj):$/;"	kind:member	line:197
+EXIT	../scribserv3.py	/^    def EXIT(obj):$/;"	kind:member	line:318
 EXPORT	../scribserv2.py	/^    def EXPORT(opath):$/;"	kind:member	line:145
-EXPORT	../scribserv3.py	/^    def EXPORT(opath):$/;"	kind:member	line:187
+EXPORT	../scribserv3.py	/^    def EXPORT(opath):$/;"	kind:member	line:305
 FACT	../scribserv.py	/^FACT = WebSocketServerFactory(u"ws:\/\/127.0.0.1:9000")$/;"	kind:variable	line:30
 HTMLDocs	../scridoc.py	/^class HTMLDocs:$/;"	kind:class	line:22
 INACTIVE_TIMEOUT	../miniserv.py	/^INACTIVE_TIMEOUT = 120$/;"	kind:variable	line:4
 INACTIVE_TIMEOUT	../scribserv2.py	/^INACTIVE_TIMEOUT = 120$/;"	kind:variable	line:3
-INACTIVE_TIMEOUT	../scribserv3.py	/^INACTIVE_TIMEOUT = 120$/;"	kind:variable	line:4
-LOGFILE	../scribserv3.py	/^LOGFILE = 'scribserv.log'$/;"	kind:variable	line:6
+INACTIVE_TIMEOUT	../scribserv3.py	/^INACTIVE_TIMEOUT = 120$/;"	kind:variable	line:22
+LOGFILE	../scribserv3.py	/^LOGFILE = 'scribserv.log'$/;"	kind:variable	line:24
 Mini	../miniserv.py	/^class Mini(SocketServer.StreamRequestHandler):$/;"	kind:class	line:19
-OPEN	../scribserv3.py	/^    def OPEN(opath):$/;"	kind:member	line:192
+OPEN	../scribserv3.py	/^    def OPEN(opath='temp\/good1.sla'):$/;"	kind:member	line:310
 PORT	../miniserv.py	/^PORT = 22022$/;"	kind:variable	line:5
 PORT	../scribserv2.py	/^    PORT = DEFAULT_PORT$/;"	kind:variable	line:224
 PORT	../scribserv2.py	/^    PORT = int(argv[2])$/;"	kind:variable	line:222
-PORT	../scribserv3.py	/^    PORT = DEFAULT_PORT$/;"	kind:variable	line:275
-PORT	../scribserv3.py	/^    PORT = int(argv[1])$/;"	kind:variable	line:273
-TCPServerV4	../scribserv3.py	/^class TCPServerV4(SocketServer.TCPServer):$/;"	kind:class	line:36
+PORT	../scribserv3.py	/^    PORT = DEFAULT_PORT$/;"	kind:variable	line:395
+PORT	../scribserv3.py	/^    PORT = int(argv[1])$/;"	kind:variable	line:393
+ScribusException	../scribserv3.py	/^    class ScribusException(Exception):$/;"	kind:class	line:43
+TCPServerV4	../scribserv3.py	/^class TCPServerV4(SocketServer.TCPServer):$/;"	kind:class	line:106
+VERSION	../scribserv3.py	/^VERSION = "v07.2 - w\/local+remote debug & even smarter"$/;"	kind:variable	line:6
 __init__	../scribserv2.py	/^    def __init__(self, factory):$/;"	kind:member	line:40
 __init__	../scridoc.py	/^    def __init__(self):$/;"	kind:member	line:26
 __init__	../scridoc.py	/^    def __init__(self):$/;"	kind:member	line:78
 _b85alphabet	../get-pip.py	/^    _b85alphabet = (b"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"$/;"	kind:variable	line:43
-address_family	../scribserv3.py	/^    address_family = SocketServer.socket.AF_INET$/;"	kind:variable	line:37
-allow_reuse_address	../scribserv3.py	/^    allow_reuse_address = True$/;"	kind:variable	line:38
+address_family	../scribserv3.py	/^    address_family = SocketServer.socket.AF_INET$/;"	kind:variable	line:107
+allow_reuse_address	../scribserv3.py	/^    allow_reuse_address = True$/;"	kind:variable	line:108
 args	../get-pip.py	/^        args = sys.argv[1:]$/;"	kind:variable	line:108
 autoclose	../scribserv2.py	/^    def autoclose(self):$/;"	kind:member	line:49
 b85decode	../get-pip.py	/^    def b85decode(b):$/;"	kind:function	line:46
@@ -48,6 +50,8 @@ bootstrap	../get-pip.py	/^def bootstrap(tmpdir=None):$/;"	kind:function	line:80
 buildProtocol	../scribserv2.py	/^    def buildProtocol(self, addr):$/;"	kind:member	line:195
 c	../scridoc.py	/^c = CPPDocs()$/;"	kind:variable	line:166
 cert_path	../get-pip.py	/^        cert_path = os.path.join(tmpdir, "cacert.pem")$/;"	kind:variable	line:166
+changeColor	../scribserv3.py	/^    def changeColor(name, c, m, y, k):$/;"	kind:member	line:52
+changeColor	../temp/test2.py	/^    def changeColor(a, b):$/;"	kind:member	line:19
 color	../color-change-trivial.py	/^    color = scribus.getColor(name)$/;"	kind:variable	line:8
 color-change-trivial.py	../color-change-trivial.py	1;"	kind:file	line:1
 colorNames	../color-change-trivial.py	/^colorNames = scribus.getColorNames()$/;"	kind:variable	line:6
@@ -58,27 +62,38 @@ diff	../scridoc.py	/^diff = difflib.Differ(charjunk=difflib.IS_CHARACTER_JUNK)$/
 endpoint	../scribserv2.py	/^endpoint = TCP4ServerEndpoint(reactor, PORT)$/;"	kind:variable	line:228
 export2pdf.py	../export2pdf.py	1;"	kind:file	line:1
 exportPDF	../scribserv2.py	/^def exportPDF(opath='VR_EXPORT.pdf'):$/;"	kind:function	line:31
-exportPDF	../scribserv3.py	/^def exportPDF(opath='VR_EXPORT.pdf'):$/;"	kind:function	line:43
+exportPDF	../scribserv3.py	/^def exportPDF(opath='VR_EXPORT.pdf'):$/;"	kind:function	line:113
+exportPDF	../temp/mini-export.py	/^def exportPDF(opath='VR_EXPORT.pdf'):$/;"	kind:function	line:1
 f	../scridoc.py	/^f = open('scribus-docs-check.html', 'w')$/;"	kind:variable	line:226
-formatter	../scribserv3.py	/^formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')$/;"	kind:variable	line:29
+formatter	../scribserv3.py	/^formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')$/;"	kind:variable	line:100
+formatter	../temp/test2.py	/^formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')$/;"	kind:variable	line:7
 get-pip.py	../get-pip.py	1;"	kind:file	line:1
 getAllProcedures	../scridoc.py	/^    def getAllProcedures(self):$/;"	kind:member	line:118
+getAllText	../scribserv3.py	/^    def getAllText(a):$/;"	kind:member	line:69
+getColorNames	../scribserv3.py	/^    def getColorNames():$/;"	kind:member	line:47
+getColorNames	../temp/test2.py	/^    def getColorNames():$/;"	kind:member	line:14
 getFileProcedures	../scridoc.py	/^    def getFileProcedures(self, fname):$/;"	kind:member	line:138
 getHTMLDocs	../scridoc.py	/^def getHTMLDocs(name, doc):$/;"	kind:function	line:154
+getPageItems	../scribserv3.py	/^    def getPageItems():$/;"	kind:member	line:78
+gotoPage	../scribserv3.py	/^    def gotoPage(a):$/;"	kind:member	line:65
 h	../scridoc.py	/^h = HTMLDocs()$/;"	kind:variable	line:165
 handle	../miniserv.py	/^    def handle(self):$/;"	kind:member	line:23
-handle	../scribserv3.py	/^    def handle(self):$/;"	kind:member	line:107
-hdlr	../scribserv3.py	/^hdlr = logging.FileHandler(LOGFILE)$/;"	kind:variable	line:28
+handle	../scribserv3.py	/^    def handle(self):$/;"	kind:member	line:224
+hdlr	../scribserv3.py	/^    hdlr = logging.FileHandler(LOGFILE)# ---------------------------------------------$/;"	kind:variable	line:98
+hdlr	../scribserv3.py	/^    hdlr = logging.NullHandler()$/;"	kind:variable	line:96
+hdlr	../temp/test2.py	/^hdlr = logging.FileHandler('test.log')$/;"	kind:variable	line:6
 implicit_setuptools	../get-pip.py	/^        implicit_setuptools = False$/;"	kind:variable	line:106
 implicit_wheel	../get-pip.py	/^        implicit_wheel = False$/;"	kind:variable	line:113
 iterbytes	../get-pip.py	/^    def iterbytes(buf):$/;"	kind:function	line:37
 iterbytes	../get-pip.py	/^    iterbytes = iter$/;"	kind:variable	line:35
 lineReceived	../scribserv2.py	/^    def lineReceived(self, line):$/;"	kind:member	line:158
-lineReceived	../scribserv3.py	/^    def lineReceived(self, line):$/;"	kind:member	line:201
-logger	../scribserv3.py	/^logger = logging.getLogger('automator')$/;"	kind:variable	line:27
+lineReceived	../scribserv3.py	/^    def lineReceived(self, line):$/;"	kind:member	line:322
+logger	../scribserv3.py	/^logger = logging.getLogger('automator')$/;"	kind:variable	line:93
+logger	../temp/test2.py	/^logger = logging.getLogger('automator')$/;"	kind:variable	line:5
 loop_forever	../try.py	/^def loop_forever():$/;"	kind:function	line:20
 main	../export2pdf.py	/^def main(argv):$/;"	kind:function	line:42
 main	../get-pip.py	/^def main():$/;"	kind:function	line:179
+mini-export.py	../temp/mini-export.py	1;"	kind:file	line:1
 miniserv.py	../miniserv.py	1;"	kind:file	line:1
 objectExplorer.py	../objectExplorer.py	1;"	kind:file	line:1
 onClose	../scribserv.py	/^    def onClose(self, wasClean, code, reason):$/;"	kind:member	line:24
@@ -87,21 +102,35 @@ onMessage	../scribserv.py	/^    def onMessage(self, payload, isBinary):$/;"	kind
 onOpen	../scribserv.py	/^    def onOpen(self):$/;"	kind:member	line:12
 order	../scridoc.py	/^def order():$/;"	kind:function	line:149
 out	../scridoc.py	/^out = []$/;"	kind:variable	line:168
+page	../scribserv3.py	/^    page = 0$/;"	kind:variable	line:42
+pageCount	../scribserv3.py	/^    def pageCount():$/;"	kind:member	line:60
 parseFile	../scridoc.py	/^    def parseFile(self, fname):$/;"	kind:member	line:45
 parse_args	../get-pip.py	/^        def parse_args(self, args):$/;"	kind:member	line:88
-processColors	../scribserv3.py	/^def processColors(xlat):$/;"	kind:function	line:53
-processTemplate	../scribserv3.py	/^def processTemplate(xlat):$/;"	kind:function	line:62
+processColors	../scribserv3.py	/^def processColors(xlat):$/;"	kind:function	line:144
+processColors	../temp/test2.py	/^def processColors(xlat):$/;"	kind:function	line:22
+processTemplate	../scribserv3.py	/^def processTemplate(xlat):$/;"	kind:function	line:173
+rcmyk	../temp/serch.py	/^rcmyk = re.compile(r'[(]*([\\d\\s,]+)[)]*')$/;"	kind:variable	line:4
 restore	../scribserv2.py	/^    def restore(self):$/;"	kind:member	line:74
 scribserv.py	../scribserv.py	1;"	kind:file	line:1
 scribserv2.py	../scribserv2.py	1;"	kind:file	line:1
 scribserv3.py	../scribserv3.py	1;"	kind:file	line:1
+scribus	../scribserv3.py	/^    scribus = scribusdummy$/;"	kind:variable	line:89
+scribus	../temp/test2.py	/^class scribus(object):$/;"	kind:class	line:12
+scribusdummy	../scribserv3.py	/^class scribusdummy(object):$/;"	kind:class	line:41
 scridoc.py	../scridoc.py	1;"	kind:file	line:1
 sendLine	../miniserv.py	/^    def sendLine(self, line):$/;"	kind:member	line:20
-sendLine	../scribserv3.py	/^    def sendLine(self, line):$/;"	kind:member	line:100
+sendLine	../scribserv3.py	/^    def sendLine(self, line):$/;"	kind:member	line:217
+serch.py	../temp/serch.py	1;"	kind:file	line:1
 server	../miniserv.py	/^server = SocketServer.TCPServer(('localhost', PORT), Mini)$/;"	kind:variable	line:36
-server	../scribserv3.py	/^server = TCPServerV4(('localhost', PORT), Automator3)$/;"	kind:variable	line:281
-shutdown	../scribserv3.py	/^    def shutdown(self):$/;"	kind:member	line:129
+server	../scribserv3.py	/^    server = TCPServerV4(('localhost', PORT), Automator3)$/;"	kind:variable	line:403
+setRedraw	../scribserv3.py	/^    def setRedraw(a):$/;"	kind:member	line:56
+setText	../scribserv3.py	/^    def setText(nstr, item):$/;"	kind:member	line:74
+shutdown	../scribserv3.py	/^    def shutdown(self):$/;"	kind:member	line:246
 strip	../scridoc.py	/^    def strip(self, txt):$/;"	kind:member	line:40
 test.py	../temp/test.py	1;"	kind:file	line:1
-timeout	../scribserv3.py	/^    timeout = CONNECTION_TIMEOUT$/;"	kind:variable	line:39
+test2.py	../temp/test2.py	1;"	kind:file	line:1
+timeout	../scribserv3.py	/^    timeout = CONNECTION_TIMEOUT$/;"	kind:variable	line:109
 try.py	../try.py	1;"	kind:file	line:1
+val	../temp/serch.py	/^val = "(1, 2, 3, 4)"$/;"	kind:variable	line:11
+val	../temp/serch.py	/^val = "1, 2, 3, 4"$/;"	kind:variable	line:8
+val	../temp/serch.py	/^val = "cmyk(1, 2, 3, 4)"$/;"	kind:variable	line:3
