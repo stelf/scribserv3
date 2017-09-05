@@ -1,2 +1,60 @@
 # scribserv3
+
 Scribus remote templating server example
+
+
+## Description
+
+This small server can be started inside Scribus as to serve as automation connector for templateing of texts and colours.
+
+Will look all text fields that contain code like {{TEXT}} and all colors with codes such as {{COLOUR}} and replace them with values provided via simple TCP connection. 
+
+## Starting
+
+Is best started with xvfb-run under Linux. 
+
+```bash
+xvfb-run -n 2 scribus-ng  -py ./scribserv3.py 22025 -- template.sla
+```
+
+## Commands
+
+Valid commands upon connection :
+
+* EXIT:  
+
+  exits (please note the ':' sign)
+
+* CONVERT:location:PARAMS
+
+  process the currently open template. for example :
+
+```raw
+CONVERT:DBG-color.pdf:%7B%22NAME%22%3A%20%22THE%20FUCKMAN%22%2C%22BABA%22%3A%20%22cmyk%28100%2C%2020%2C%2050%2C%2010%29%22%7D
+```
+
+* EXPORT:location
+
+  repeat export
+  
+* OPEN:location
+
+  close the current, and open new file
+
+## Generating Params
+
+you can easily generate param strings with the following snippet
+
+```python
+# import urllib
+
+code = 'CONVERT'
+arg = '{"NAME": "THE DUCKMAN", "COLOR": "cmyk(100, 20, 50, 10)"}'
+print urllib.quote(arg)
+```
+
+## reg. Scribus API
+
+This uses the old Scribus API. Was tested with scribus 1.5.3 on Windows 10, Mint 18, and OS/X 10.6
+
+The code is pretty self-exmplanatory.
