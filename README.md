@@ -53,6 +53,19 @@ arg = '{"NAME": "THE DUCKMAN", "COLOR": "cmyk(100, 20, 50, 10)"}'
 print urllib.quote(arg)
 ```
 
+## Debugging
+
+The service was developed in VSCode and can be debugged standalone. In case the ```import scribus``` expression fails, all calls divert to a 'mock' version of the object.
+
+The service can also be debugged with winpdbg (<http://winpdb.org>) by uncommenting the lines:
+
+
+```python
+# import rpdb2;
+# rpdb2.start_embedded_debugger('slivi4smet')
+```
+
+
 ## reg. Scribus API
 
 This uses the old Scribus API. Was tested with scribus 1.5.3 on Windows 10, Mint 18, and OS/X 10.6
