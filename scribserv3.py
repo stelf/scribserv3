@@ -30,7 +30,8 @@ see the README.md for usage
 # VERSION = "v0.6 - w/colors & unit test"
 # VERSION = "v0.7 - w/local+remote debug"
 # VERSION = "v7.2 - w/local+remote debug & even smarter"
-VERSION = "v7.3 - replace ftw"
+# VERSION = "v7.3 - replace ftw"
+VERSION = "v7.4 - timeouts"
 
 # ----------------------------------------------------------------------------
 
@@ -48,7 +49,7 @@ VERSION = "v7.3 - replace ftw"
 # ptvsd.wait_for_attach()
 
 CONNECTION_TIMEOUT = 60
-INACTIVE_TIMEOUT = 120
+INACTIVE_TIMEOUT = 20
 DEFAULT_PORT = 22022
 LOGFILE = 'scribserv.log'
 
@@ -61,6 +62,7 @@ try:
     import urllib
     import sys
     import json
+    import socket
     from sys import argv
 except ImportError:
     print '! missing some crucial system modules !'
@@ -115,14 +117,14 @@ try:
     from scribus import PDFfile, haveDoc
 
     def replaceText(text, code):
-            l = scribus.getTextLength(code)
-            scribus.selectText(0, l-1, code)
-            scribus.deleteText(code)
-            scribus.insertText(text, 0, code)
+        l = scribus.getTextLength(code)
+        scribus.selectText(0, l-1, code)
+        scribus.deleteText(code)
+        scribus.insertText(text, 0, code)
 
-            l = scribus.getTextLength(code)
-            scribus.selectText(l-1, 1, code)
-            scribus.deleteText(code)
+        l = scribus.getTextLength(code)
+        scribus.selectText(l-1, 1, code)
+        scribus.deleteText(code)
 
     scribus.replaceText = replaceText
 
@@ -137,7 +139,9 @@ logger = logging.getLogger('automator')
 if LOGFILE is None:
     hdlr = logging.NullHandler()
 else:
-    hdlr = logging.FileHandler(LOGFILE)# ---------------------------------------------
+    hdlr = logging.FileHandler(LOGFILE)
+    
+# ----------------------------------------------------------------------------
 
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 hdlr.setFormatter(formatter)
@@ -267,6 +271,7 @@ class Automator3(SocketServer.StreamRequestHandler):
         logger.info('! handle request. initiate dialogue.')
         logger.info('! adapter %s' % VERSION)
         self.saved = dict()
+#        print self.socket.getTimeout()
 
         while 1:
             data = self.rfile.readline().strip()
@@ -276,14 +281,23 @@ class Automator3(SocketServer.StreamRequestHandler):
 
             self.lineReceived(data)
 
-    # def __init__(self, socket, client, tcpserv):
-    #     self.socket = socket
-    #     socket.settimeout(INACTIVE_TIMEOUT)
+    def server_close(self):
+        logger.info('! finalize work and shutdown.')
+        self.shutdown()
 
-    #     # self.accb = reactor.callLater(INACTIVE_TIMEOUT,
-    #     #     functools.partial(
-    #     #         Automator3.autoclose,
-    #     #         self))
+    def __init__(self, sock, client, tcpserv):
+        self.socket = sock
+        sock.settimeout(INACTIVE_TIMEOUT)
+        try:
+            SocketServer.StreamRequestHandler.__init__(self, sock, client, tcpserv)
+        except socket.timeout:
+            logger.info('! timeout waiting for input')
+            self.shutdown()
+
+    # self.accb = reactor.callLater(INACTIVE_TIMEOUT,
+    #     functools.partial(
+    #         Automator3.autoclose,
+    #         self))
 
     def shutdown(self):
         """Close connection and app.
@@ -431,7 +445,7 @@ Automator3.answers = {
 
 # maybe leave this true at some point when
 # all development is done
-# scribus.setRedraw(False)
+scribus.setRedraw(False)
 
 if len(argv) > 1:
     PORT = int(argv[1])
@@ -449,13 +463,16 @@ else:
 
 # --------------------------------------------------------------------
 
-# import urllib
+import urllib
 
 # code = 'CONVERT'
-# # arg = '{"CAPT": "ANOTHER","DESC1": "ANNN2233","DESC2": "AAEEEYYAAE", "COLOR1" : "1,2,3,4", "BABA": "cmyk(100, 20, 50, 10)"}'
+# arg = '{"CAPT": "ANOTHER","DESC1": "ANNN2233","DESC2": "AAEEEYYAAE", "COLOR1" : "1,2,3,4", "BABA": "cmyk(100, 20, 50, 10)"}'
 # arg = '{"NAMEs": "THE FUCKMAN","BABA": "cmyk(100, 20, 50, 10)"}'
+
+# arg = '{"CAPT":"kfhgms/fgkmh/fklg", "COLOR" : "cmyk(32,45,44,12)"}'
+
 # argenc = urllib.quote(arg)
-# print 'DBG: ' + argenc
+# print argenc
 
 # res = Automation.answers[code]['fun']('Result.PDF:' + str(argenc))
 
@@ -463,4 +480,5 @@ else:
 # CONVERT:DBG.pdf:%7B%22CAPT%22%3A%20%22ichi%20da%20kuilla%22%2C%22DESC1%22%3A%20%22sex%20more%20for%20everyone%22%2C%22DESC2%22%3A%20%22houwyacc%20mooyacc%20greive%20est%20cos%28mes%29%22%7D
 # CONVERT:DBG22.pdf:%7B%22CAPT%22%3A%20%22ANOTHER%22%2C%22DESC1%22%3A%20%22ANNN2233%22%2C%22DESC2%22%3A%20%22AAEEEYYAAE%22%7D
 # CONVERT:DBG-color.pdf:%7B%22CAPT%22%3A%20%22ANOTHER%22%2C%22DESC1%22%3A%20%22ANNN2233%22%2C%22DESC2%22%3A%20%22AAEEEYYAAE%22%2C%20%22COLOR1%22%20%3A%20%221%2C2%2C3%2C4%22%2C%20%22BABA%22%3A%20%22cmyk%2810%2C%2020%2C%2030%2C%2040%29%22%7D
-# CONVERT:temp/result.pdf:%7B%22NAME%22%3A%20%22THE%20FUCKMAN%22%2C%22BABA%22%3A%20%22cmyk%28100%2C%2020%2C%2050%2C%2010%29%22%7D
+# CONVERT:temp/result.pdf:%7B%22NAME%22%3A%20%22THE%20BEST%20FUCKMAN%22%2C%22BABA%22%3A%20%22cmyk%28100%2C%2020%2C%2050%2C%2010%29%22%7D
+# CONVERT:temp/result.pdf:%7B%22CAPT%22%3A%22kfhgms/fgkmh/fklg%22%2C%20%22COLOR%22%20%3A%20%22cmyk%2832%2C45%2C44%2C12%29%22%7D
