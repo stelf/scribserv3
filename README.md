@@ -21,7 +21,7 @@ xvfb-run -n 2 scribus-ng  -py ./scribserv3.py 22025 -- template.sla
 
 Valid commands upon connection :
 
-* EXIT:  
+* EXIT:
 
   exits (please note the ':' sign)
 
@@ -41,9 +41,9 @@ CONVERT:DBG-color.pdf:%7B%22NAME%22%3A%20%22THE%20FUCKMAN%22%2C%22BABA%22%3A%20%
 
   close the current, and open new file
 
-## Generating Params
+## Generating serialized and url-encoded JSON 
 
-you can easily generate param strings with the following snippet
+You can easily generate template param strings for testing purposes with the following snippet:
 
 ```python
 # import urllib
@@ -53,6 +53,16 @@ arg = '{"NAME": "THE DUCKMAN", "COLOR": "cmyk(100, 20, 50, 10)"}'
 print urllib.quote(arg)
 ```
 
+## Configration
+
+The config params are at the top. Defaults are:
+
+```python
+CONNECTION_TIMEOUT = 60
+INACTIVE_TIMEOUT = 120
+DEFAULT_PORT = 22022
+LOGFILE = 'scribserv.log'
+```
 ## Debugging
 
 The service was developed in VSCode and can be debugged standalone. In case the ```import scribus``` expression fails, all calls divert to a 'mock' version of the object.
@@ -71,3 +81,8 @@ The service can also be debugged with winpdbg (<http://winpdb.org>) by uncomment
 This uses the old Scribus API. Was tested with scribus 1.5.3 on Windows 10, Mint 18, and OS/X 10.6
 
 The code is pretty self-exmplanatory.
+
+## TODO
+
+* implement the OPEN command
+* make sure styles are not lost upon exports
