@@ -8,14 +8,14 @@ VERSION = "v07.2 - w/local+remote debug & even smarter"
 # uncomment this in order to debug remotely
 # with winpdb (http://www.winpdb.org/)
 # import rpdb2;
-# rpdb2.start_embedded_debugger('dqdomraz')
+# rpdb2.start_embedded_debugger('slivi4smet')
 
 # uncomment this in order to debug remotely
 # as descibed in https://donjayamanne.github.io/pythonVSCodeDocs/docs/debugging_remote-debugging/
 # although, not working at the time of writing fo this code
 
 # import ptvsd
-# ptvsd.enable_attach("dqdomraz", address=('0.0.0.0', 3040))
+# ptvsd.enable_attach("slivi4smet", address=('0.0.0.0', 3040))
 # ptvsd.wait_for_attach()
 
 CONNECTION_TIMEOUT = 60
