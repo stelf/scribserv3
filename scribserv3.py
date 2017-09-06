@@ -29,9 +29,10 @@ see the README.md for usage
 # VERSION = "v0.5 - w/working templating"
 # VERSION = "v0.6 - w/colors & unit test"
 # VERSION = "v0.7 - w/local+remote debug"
-# VERSION = "v7.2 - w/local+remote debug & even smarter"
-# VERSION = "v7.3 - replace ftw"
-VERSION = "v7.4 - timeouts"
+# VERSION = "v0.7.2 - w/local+remote debug & even smarter"
+# VERSION = "v0.7.3 - replace ftw"
+# VERSION = "v0.7.4 - timeouts & opendoc"
+VERSION = "v0.7.5 - bugfixing"
 
 # ----------------------------------------------------------------------------
 
@@ -50,6 +51,7 @@ VERSION = "v7.4 - timeouts"
 
 CONNECTION_TIMEOUT = 60
 INACTIVE_TIMEOUT = 20
+DOCUMENT_TIMEOUT = 120
 DEFAULT_PORT = 22022
 LOGFILE = 'scribserv.log'
 
@@ -158,6 +160,7 @@ class TCPServerV4(SocketServer.TCPServer):
 
 def exportPDF(opath='VR_EXPORT.pdf'):
     if 'PDFfile' in globals():
+        scribus.docChanged(True)
         pdf = PDFfile()
 
         # options are described at
@@ -166,7 +169,6 @@ def exportPDF(opath='VR_EXPORT.pdf'):
         pdf.compress = 0
 
         pdf.version = 15        # 15 = PDF 1.5 (Acrobat 6)
-        pdf.bleedr = 2
 
         pdf.allowPrinting = True
         pdf.allowCopy = True
@@ -190,10 +192,11 @@ def exportPDF(opath='VR_EXPORT.pdf'):
 def processColors(xlat):
     if xlat is None:
         return
-    rclean = re.compile('[{}]')
-    rcmyk = re.compile(r'[(]*([\d\s,]+)[)]*')
+    rclean = re.compile(r'[{}]')
+    # rcmyk = re.compile(r'[(]*([\d\s,]+)[)]*')
+    rcmyk = re.compile(r'[(]*(?:(\d+)[\%\s,]*)[)]*')
 
-    logger.info(r'! process colors')
+    logger.info('! process colors')
     try:
         colcodes = [rclean.sub('', n)
                     for n in scribus.getColorNames()
@@ -201,15 +204,19 @@ def processColors(xlat):
 
         logger.info("! colcodes %s", str(colcodes))
 
-        cn = {name: map(int, rcmyk.search(xlat[name]).group(1).split(', '))
+        for i in colcodes:
+            logger.info('%s => %s', i, xlat[i])
+
+        cn = {name: map(int, rcmyk.findall(xlat[name]))
               for name in colcodes
               if name in xlat and ',' in xlat[name]}
 
         logger.info("! colors xlat %s ", str(cn))
 
         for name, val in cn.iteritems():
-            scribus.changeColor(name, *val)
-            logger.info('..replaced color %s => (%s)', name, xlat[name])
+            cname = '{{%s}}' % name
+            scribus.changeColor(cname, *val)
+            logger.info('..replaced color %s => (%s)', cname, xlat[name])
 
     except scribus.ScribusException:
         logger.error('..scribus failed: %s', sys.exc_info()[1].message)
@@ -292,6 +299,7 @@ class Automator3(SocketServer.StreamRequestHandler):
             SocketServer.StreamRequestHandler.__init__(self, sock, client, tcpserv)
         except socket.timeout:
             logger.info('! timeout waiting for input')
+            sock.close()
             self.shutdown()
 
     # self.accb = reactor.callLater(INACTIVE_TIMEOUT,
@@ -327,7 +335,6 @@ class Automator3(SocketServer.StreamRequestHandler):
 
     @staticmethod
     def CONVERT(arg):
-        logger.info('..decoding params...')
         marg = re.search(r'(.*?):(.*)', arg)
         if marg:
             [opath, xlatenc] = [marg.group(1), marg.group(2)]
@@ -363,12 +370,24 @@ class Automator3(SocketServer.StreamRequestHandler):
         logger.info('! export current to PDF')
 
     @staticmethod
-    def OPEN(opath='temp/good1.sla'):
-        logger.info('! open experiments')
+    def OPEN(arg):
+        marg = re.search(r'(.*?):(.*)', arg)
+        if marg:
+            [opath, code] = [marg.group(1), marg.group(2)]
+        else:
+            logger.error('..bad argument: [%s]', arg)
+            return 'ERR_BAD_ARG: %s' % arg
+
+        logger.info('! open document %s')
         try:
+            # scribus.closeDoc()
             scribus.openDoc(opath)
+
         except scribus.ScribusException:
             logger.error('.can not open [%s], because %s', opath, sys.exc_info()[1].message)
+            return 'ERR_BAD_OPEN: %s', sys.exc_info()[1].message
+        
+        return 'DONE'
 
     @staticmethod
     def EXIT(obj):
@@ -463,13 +482,12 @@ else:
 
 # --------------------------------------------------------------------
 
-import urllib
+# import urllib
 
-# code = 'CONVERT'
-# arg = '{"CAPT": "ANOTHER","DESC1": "ANNN2233","DESC2": "AAEEEYYAAE", "COLOR1" : "1,2,3,4", "BABA": "cmyk(100, 20, 50, 10)"}'
-# arg = '{"NAMEs": "THE FUCKMAN","BABA": "cmyk(100, 20, 50, 10)"}'
+# # arg = '{"CAPT": "ANOTHER","DESC1": "ANNN2233","DESC2": "AAEEEYYAAE", "COLOR1" : "1,2,3,4", "BABA": "cmyk(100, 20, 50, 10)"}'
+# # arg = '{"NAMEs": "THE FUCKMAN","BABA": "cmyk(100, 20, 50, 10)"}'
 
-# arg = '{"CAPT":"kfhgms/fgkmh/fklg", "COLOR" : "cmyk(32,45,44,12)"}'
+# arg = '{"CAPT":"THE CAPTION SHOULD BE THIS", "DESC": "cmyk color should be cmyk(61,5,88,0)", "COLOR" : "cmyk(61,5,88,0)"}'
 
 # argenc = urllib.quote(arg)
 # print argenc
@@ -481,4 +499,7 @@ import urllib
 # CONVERT:DBG22.pdf:%7B%22CAPT%22%3A%20%22ANOTHER%22%2C%22DESC1%22%3A%20%22ANNN2233%22%2C%22DESC2%22%3A%20%22AAEEEYYAAE%22%7D
 # CONVERT:DBG-color.pdf:%7B%22CAPT%22%3A%20%22ANOTHER%22%2C%22DESC1%22%3A%20%22ANNN2233%22%2C%22DESC2%22%3A%20%22AAEEEYYAAE%22%2C%20%22COLOR1%22%20%3A%20%221%2C2%2C3%2C4%22%2C%20%22BABA%22%3A%20%22cmyk%2810%2C%2020%2C%2030%2C%2040%29%22%7D
 # CONVERT:temp/result.pdf:%7B%22NAME%22%3A%20%22THE%20BEST%20FUCKMAN%22%2C%22BABA%22%3A%20%22cmyk%28100%2C%2020%2C%2050%2C%2010%29%22%7D
-# CONVERT:temp/result.pdf:%7B%22CAPT%22%3A%22kfhgms/fgkmh/fklg%22%2C%20%22COLOR%22%20%3A%20%22cmyk%2832%2C45%2C44%2C12%29%22%7D
+# CONVERT:temp/result.pdf:%7B%22CAPT%22%3A%22THE%20CAPTION%20SHOULD%20BE%20THIS%22%2C%20%22DESC1%22%3A%20%22cmyk%20color%20should%20be%20cmyk%2861%2C5%2C88%2C0%29%22%2C%20%22COLOR%22%20%3A%20%22cmyk%2861%2C5%2C88%2C0%29%22%7D
+
+
+
