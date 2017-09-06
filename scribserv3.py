@@ -173,15 +173,15 @@ def exportPDF(opath='VR_EXPORT.pdf'):
         pdf.allowPrinting = True
         pdf.allowCopy = True
 
-        pdf.outdst = 0          # out destination - printer
+        pdf.outdst = 1          # out destination - printer
         pdf.file = opath
         pdf.profilei = True     # embed color profile
         pdf.embedPDF = True     # PDF in PDF
-        pdf.useLayers = True    # export the layers (if any)
+        # pdf.useLayers = True    # export the layers (if any)
         pdf.fontEmbedding = 1   # text to curves
 
-        pdf.resolution = 300    # good enough for most prints
-        pdf.quality = 1         # high image quality
+        # pdf.resolution = 300    # good enough for most prints
+        # pdf.quality = 1         # high image quality
 
         pdf.save()
     else:
@@ -482,15 +482,15 @@ else:
 
 # --------------------------------------------------------------------
 
-# import urllib
+import urllib
 
 # # arg = '{"CAPT": "ANOTHER","DESC1": "ANNN2233","DESC2": "AAEEEYYAAE", "COLOR1" : "1,2,3,4", "BABA": "cmyk(100, 20, 50, 10)"}'
 # # arg = '{"NAMEs": "THE FUCKMAN","BABA": "cmyk(100, 20, 50, 10)"}'
 
-# arg = '{"CAPT":"THE CAPTION SHOULD BE THIS", "DESC": "cmyk color should be cmyk(61,5,88,0)", "COLOR" : "cmyk(61,5,88,0)"}'
+arg = '{"CAPT":"THE CAPTION SHOULD BE THIS", "DESC": "cmyk color should be cmyk(61,5,88,0)", "COLOR" : "cmyk(12,84,60,48)"}'
 
-# argenc = urllib.quote(arg)
-# print argenc
+argenc = urllib.quote(arg)
+print argenc
 
 # res = Automation.answers[code]['fun']('Result.PDF:' + str(argenc))
 
@@ -499,7 +499,7 @@ else:
 # CONVERT:DBG22.pdf:%7B%22CAPT%22%3A%20%22ANOTHER%22%2C%22DESC1%22%3A%20%22ANNN2233%22%2C%22DESC2%22%3A%20%22AAEEEYYAAE%22%7D
 # CONVERT:DBG-color.pdf:%7B%22CAPT%22%3A%20%22ANOTHER%22%2C%22DESC1%22%3A%20%22ANNN2233%22%2C%22DESC2%22%3A%20%22AAEEEYYAAE%22%2C%20%22COLOR1%22%20%3A%20%221%2C2%2C3%2C4%22%2C%20%22BABA%22%3A%20%22cmyk%2810%2C%2020%2C%2030%2C%2040%29%22%7D
 # CONVERT:temp/result.pdf:%7B%22NAME%22%3A%20%22THE%20BEST%20FUCKMAN%22%2C%22BABA%22%3A%20%22cmyk%28100%2C%2020%2C%2050%2C%2010%29%22%7D
-# CONVERT:temp/result.pdf:%7B%22CAPT%22%3A%22THE%20CAPTION%20SHOULD%20BE%20THIS%22%2C%20%22DESC1%22%3A%20%22cmyk%20color%20should%20be%20cmyk%2861%2C5%2C88%2C0%29%22%2C%20%22COLOR%22%20%3A%20%22cmyk%2861%2C5%2C88%2C0%29%22%7D
+# CONVERT:temp/result.pdf:%7B%22CAPT%22%3A%22THE%20CAPTION%20SHOULD%20BE%20THIS%22%2C%20%22DESC%22%3A%20%22cmyk%20color%20should%20be%20cmyk%2861%2C5%2C88%2C0%29%22%2C%20%22COLOR%22%20%3A%20%22cmyk%2812%2C84%2C60%2C48%29%22%7D
 
 
 
