@@ -173,7 +173,7 @@ def exportPDF(opath='VR_EXPORT.pdf'):
         pdf.allowPrinting = True
         pdf.allowCopy = True
 
-        pdf.outdst = 1          # out destination - printer
+        pdf.outdst = 0          # out destination - 0 - printer, 1 - web
         pdf.file = opath
         pdf.profilei = True     # embed color profile
         pdf.embedPDF = True     # PDF in PDF
