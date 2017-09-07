@@ -53,9 +53,9 @@ CONNECTION_TIMEOUT = 60
 INACTIVE_TIMEOUT = 20
 DOCUMENT_TIMEOUT = 120
 DEFAULT_PORT = 22022
-LOGFILE = 'scribserv.log'
+LOGFILE = None
 
-# LOGFILE = None
+LOGFILE = 'scribserv.log'
 
 try:
     import logging
@@ -119,6 +119,10 @@ try:
     from scribus import PDFfile, haveDoc
 
     def replaceText(text, code):
+        if text is None or text is u'':
+            logger.warn(".. empty content for elem [%s]", code)
+            text = '   '
+
         l = scribus.getTextLength(code)
         scribus.selectText(0, l-1, code)
         scribus.deleteText(code)
@@ -142,7 +146,7 @@ if LOGFILE is None:
     hdlr = logging.NullHandler()
 else:
     hdlr = logging.FileHandler(LOGFILE)
-    
+
 # ----------------------------------------------------------------------------
 
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
@@ -192,31 +196,32 @@ def exportPDF(opath='VR_EXPORT.pdf'):
 def processColors(xlat):
     if xlat is None:
         return
+    logger.info('! process colors')
+
     rclean = re.compile(r'[{}]')
     # rcmyk = re.compile(r'[(]*([\d\s,]+)[)]*')
     rcmyk = re.compile(r'[(]*(?:(\d+)[\%\s,]*)[)]*')
 
-    logger.info('! process colors')
     try:
         colcodes = [rclean.sub('', n)
                     for n in scribus.getColorNames()
                     if '{' in n and '}' in n]
 
-        logger.info("! colcodes %s", str(colcodes))
+        logger.info("..colcodes %s", str(colcodes))
 
         for i in colcodes:
-            logger.info('%s => %s', i, xlat[i])
+            logger.info('..%s => %s', i, xlat[i])
 
         cn = {name: map(int, rcmyk.findall(xlat[name]))
               for name in colcodes
               if name in xlat and ',' in xlat[name]}
 
-        logger.info("! colors xlat %s ", str(cn))
+        logger.info("..colors xlat %s ", str(cn))
 
         for name, val in cn.iteritems():
             cname = '{{%s}}' % name
             scribus.changeColor(cname, *val)
-            logger.info('..replaced color %s => (%s)', cname, xlat[name])
+            logger.info('...replaced color %s => (%s)', cname, xlat[name])
 
     except scribus.ScribusException:
         logger.error('..scribus failed: %s', sys.exc_info()[1].message)
@@ -276,7 +281,7 @@ class Automator3(SocketServer.StreamRequestHandler):
 
     def handle(self):
         logger.info('! handle request. initiate dialogue.')
-        logger.info('! adapter %s' % VERSION)
+        logger.info('! adapter %s', VERSION)
         self.saved = dict()
 #        print self.socket.getTimeout()
 
@@ -359,15 +364,15 @@ class Automator3(SocketServer.StreamRequestHandler):
         processColors(xlat)
 
         Automator3.EXPORT(opath)
-        logger.info('! done :D')
 
         # scribus.closeDoc()
         return 'DONE'
 
     @staticmethod
     def EXPORT(opath):
+        logger.info('! compositing & exporting... ')
         exportPDF(opath)
-        logger.info('! export current to PDF')
+        logger.info('! exported PDF to %s', opath)
 
     @staticmethod
     def OPEN(arg):
@@ -378,7 +383,7 @@ class Automator3(SocketServer.StreamRequestHandler):
             logger.error('..bad argument: [%s]', arg)
             return 'ERR_BAD_ARG: %s' % arg
 
-        logger.info('! open document %s')
+        logger.info('! open document %s, code %s', opath, code)
         try:
             # scribus.closeDoc()
             scribus.openDoc(opath)
@@ -386,7 +391,7 @@ class Automator3(SocketServer.StreamRequestHandler):
         except scribus.ScribusException:
             logger.error('.can not open [%s], because %s', opath, sys.exc_info()[1].message)
             return 'ERR_BAD_OPEN: %s', sys.exc_info()[1].message
-        
+
         return 'DONE'
 
     @staticmethod
@@ -482,24 +487,28 @@ else:
 
 # --------------------------------------------------------------------
 
-import urllib
+# import urllib
+# import json
+# arg = '{"CAPT":"", "DESC": "cmyk color should be cmyk(61,5,88,0)", "COLOR" : "cmyk(12,84,60,48)"}'
+# argenc = urllib.quote(arg)
+# print argenc
 
 # # arg = '{"CAPT": "ANOTHER","DESC1": "ANNN2233","DESC2": "AAEEEYYAAE", "COLOR1" : "1,2,3,4", "BABA": "cmyk(100, 20, 50, 10)"}'
 # # arg = '{"NAMEs": "THE FUCKMAN","BABA": "cmyk(100, 20, 50, 10)"}'
 
-arg = '{"CAPT":"THE CAPTION SHOULD BE THIS", "DESC": "cmyk color should be cmyk(61,5,88,0)", "COLOR" : "cmyk(12,84,60,48)"}'
-
-argenc = urllib.quote(arg)
-print argenc
-
 # res = Automation.answers[code]['fun']('Result.PDF:' + str(argenc))
 
 # xvfb-run -n 2 scribus-ng  -py ./scribserv3.py 22025 -- template.sla
-# CONVERT:DBG.pdf:%7B%22CAPT%22%3A%20%22ichi%20da%20kuilla%22%2C%22DESC1%22%3A%20%22sex%20more%20for%20everyone%22%2C%22DESC2%22%3A%20%22houwyacc%20mooyacc%20greive%20est%20cos%28mes%29%22%7D
-# CONVERT:DBG22.pdf:%7B%22CAPT%22%3A%20%22ANOTHER%22%2C%22DESC1%22%3A%20%22ANNN2233%22%2C%22DESC2%22%3A%20%22AAEEEYYAAE%22%7D
-# CONVERT:DBG-color.pdf:%7B%22CAPT%22%3A%20%22ANOTHER%22%2C%22DESC1%22%3A%20%22ANNN2233%22%2C%22DESC2%22%3A%20%22AAEEEYYAAE%22%2C%20%22COLOR1%22%20%3A%20%221%2C2%2C3%2C4%22%2C%20%22BABA%22%3A%20%22cmyk%2810%2C%2020%2C%2030%2C%2040%29%22%7D
-# CONVERT:temp/result.pdf:%7B%22NAME%22%3A%20%22THE%20BEST%20FUCKMAN%22%2C%22BABA%22%3A%20%22cmyk%28100%2C%2020%2C%2050%2C%2010%29%22%7D
-# CONVERT:temp/result.pdf:%7B%22CAPT%22%3A%22THE%20CAPTION%20SHOULD%20BE%20THIS%22%2C%20%22DESC%22%3A%20%22cmyk%20color%20should%20be%20cmyk%2861%2C5%2C88%2C0%29%22%2C%20%22COLOR%22%20%3A%20%22cmyk%2812%2C84%2C60%2C48%29%22%7D
 
+"""
 
+Some Test cases
 
+CONVERT:temp/DBG.pdf:%7B%22CAPT%22%3A%20%22ichi%20da%20kuilla%22%2C%22DESC1%22%3A%20%22sex%20more%20for%20everyone%22%2C%22DESC2%22%3A%20%22houwyacc%20mooyacc%20greive%20est%20cos%28mes%29%22%7D
+CONVERT:temp/DBG22.pdf:%7B%22CAPT%22%3A%20%22ANOTHER%22%2C%22DESC1%22%3A%20%22ANNN2233%22%2C%22DESC2%22%3A%20%22AAEEEYYAAE%22%7D
+CONVERT:temp/DBG-color.pdf:%7B%22CAPT%22%3A%20%22ANOTHER%22%2C%22DESC1%22%3A%20%22ANNN2233%22%2C%22DESC2%22%3A%20%22AAEEEYYAAE%22%2C%20%22COLOR1%22%20%3A%20%221%2C2%2C3%2C4%22%2C%20%22BABA%22%3A%20%22cmyk%2810%2C%2020%2C%2030%2C%2040%29%22%7D
+CONVERT:temp/result1.pdf:%7B%22NAME%22%3A%20%22THE%20BEST%20FUCKMAN%22%2C%22BABA%22%3A%20%22cmyk%28100%2C%2020%2C%2050%2C%2010%29%22%7D
+CONVERT:temp/result2.pdf:%7B%22CAPT%22%3A%22THE%20CAPTION%20SHOULD%20BE%20THIS%22%2C%20%22DESC%22%3A%20%22cmyk%20color%20should%20be%20cmyk%2861%2C5%2C88%2C0%29%22%2C%20%22COLOR%22%20%3A%20%22cmyk%2812%2C84%2C60%2C48%29%22%7D
+CONVERT:temp/result-empty.pdf:%7B%22CAPT%22%3A%22%22%2C%20%22DESC%22%3A%20%22cmyk%20color%20should%20be%20cmyk%2861%2C5%2C88%2C0%29%22%2C%20%22COLOR%22%20%3A%20%22cmyk%2812%2C84%2C60%2C48%29%22%7D
+
+"""
