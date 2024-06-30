@@ -4,7 +4,7 @@ Scribus remote templating server.
 
 ## Description
 
-This small server can be started within the Scribus pre-printing application (scfibus.net) to serve as automation connector for templating of texts and colours.
+This small server can be started within the Scribus pre-printing application (scribus.net) to serve as automation connector for templating of texts and colours.
 
 Upon command, service will effectively look all text fields that contain code like {{TEXT}} and all colors with codes such as {{COLOUR}} and consequently replace them with values provided via simple TCP connection.
 
